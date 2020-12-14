@@ -47,7 +47,7 @@ write.table(adjacency, "Data/2ndSE_GBGE_Net2_adjacency_matrix.txt", sep = "\t", 
 
 ## ---------------------------------------------- STEP II ----------------------------------------------
 #Compute gene connectivity. For each gene/isoform in the network, the total connections, 
-#within module and without module connections are calculated. Requires adjacency matrix. 
+#within module and outside module connections are calculated. Requires adjacency matrix. 
 
 #load adjacency matrix and network
 #load(file = "Data/2ndSE_GBGE_Net1_adjacency_matrix.RData")
