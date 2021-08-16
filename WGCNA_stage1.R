@@ -17,10 +17,10 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
+#Set your working directory
+setwd("~/WGCNA")
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA")
-
-##The following setting is important, do not omit.
+#The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
 nCPU = 12
@@ -30,8 +30,8 @@ enableWGCNAThreads(nThreads = nCPU)
 dir.create("./Data")
 dir.create("./Plots")
 
-#load expression data
-data <- read.table("2ndSE_GBGE_above_1_TPM.txt", header = TRUE)
+#load expression data, for example a TMM-normalized TPM expression matrix from DESeq2 output
+data <- read.table("WGCNA_course.isoform.TMM.EXPR.matrix", header = TRUE)
 data <- t(data)
 
 ### ----------------------------- STAGE I --------------------------------------------
