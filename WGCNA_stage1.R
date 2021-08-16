@@ -32,7 +32,7 @@ dir.create("./Plots")
 
 #Load expression data, for example a TMM-normalized TPM expression matrix from DESeq2 output
 #Note that you should rename the .matrix into a .txt file and add a column-header "transcripts" to the first column
-data <- read.table("WGCNA_course.isoform.TMM.EXPR.txt", header = TRUE)
+data <- read.table("WGCNA_course.isoform.TMM.EXPR.matrix", header = TRUE)
 data <- t(data)
 
 ### ----------------------------- STAGE I --------------------------------------------
