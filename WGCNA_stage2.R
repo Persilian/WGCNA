@@ -17,12 +17,12 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA")
+setwd("~/WGCNA")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 12
+nCPU = 8
 enableWGCNAThreads(nThreads = nCPU)
 
 ### ------------------------------------------ STAGE II -----------------------------------------------
@@ -34,24 +34,25 @@ enableWGCNAThreads(nThreads = nCPU)
 #load expression data from STAGE I
 load(file = "Data/dataInput.RData")
 
-#Based on the soft-thresholding choice in STAGE I, we chose a power of 
-#power = 10 fits scale-free topology by 0.904
+#Based on the soft-thresholding choice in STAGE I, we chose an adequate power.
+#power = 1
 
 #We use "pearson" correlation (linear correlations) as this is a more intuitive and conservative approach
-#networkType = "signed" means that strongly negative correlated genes will not be connected
-#We have 44'799 genes and we would like to have as few "Blocks" as possible. 
-#RAM on p910 should allow for a "maxBlockSize" of 11'500
+#networkType = "signed" means that strongly negative correlated gene expression profiles will not be connected
+#For RNAseq data it makes biological sense to generate "unsigned" networks, where negative correlated expression profiles will be connected
+#We would like to have as few "Blocks" as possible, generally you will have around 50'000 genes in your expression data from stage 1.
+#Depending on how much RAM you have available, set maxBlockSize to something around 10'000.
 
 #One-step network construction and module detection
-net = blockwiseModules(data, power = 10, corType = "pearson", networkType = "unsigned",
+net = blockwiseModules(data, power = 1, corType = "pearson", networkType = "unsigned",
                         nThreads = nCPU,
-                        maxBlockSize = 11500,
+                        maxBlockSize = 10000,
                         TOMType = "unsigned", minModuleSize = 30,
                         reassignThreshold = 0, mergeCutHeight = 0.1,
                         numericLabels = TRUE, pamRespectsDendro = FALSE,
                         #loadTOM = FALSE,
                         saveTOMs = TRUE,
-                        saveTOMFileBase = "Data/TOM.mergecutheight.0.1.2ndSE_GBGE_Net2",
+                        saveTOMFileBase = "Data/TOM.mergecutheight.0.1.WGCNA_course_Net1",
                         verbose = 3)
 
 #number of modules and module sizes
@@ -65,13 +66,13 @@ MEs0 = moduleEigengenes(data, moduleColors)$eigengenes
 MEs = removeGreyME(MEs0,  greyMEName = paste(moduleColor.getMEprefix(), "grey", sep=""))
 geneTree = net$dendrograms[[1]]
 save(net, MEs, moduleLabels, moduleColors, geneTree,
-     file = "Data/2ndSE_GBGE_Net2_construction.RData")
+     file = "Data/WGCNA_course_Net1_construction.RData")
 
 ##--------------------------------------------- STEP II -----------------------------------------------
 ##-------------------------------------- Network vizualization ----------------------------------------
 
 #load data in case you have already computed the network
-#load(file = "Data/2ndSE_GBGE_Net1_construction.RData")
+#load(file = "Data/WGCNA_course_Net1_construction.RData")
 
 #plot the module dendrogram (network of genes)
 #Convert labels to colors for plotting
