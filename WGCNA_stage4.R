@@ -17,23 +17,23 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA")
+setwd("~/WGCNA")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 12
+nCPU = 8
 enableWGCNAThreads(nThreads = nCPU)
 
 
 ### ----------------------------------------- STAGE IV -------------------------------------------------
-### ------------------------------------------ Tables --------------------------------------------------
+### ---------------------------- Module- and gene-treatment correlations -------------------------------
 
 #load expression data
 load(file = "Data/dataInput.RData")
 
 # Load network data
-load(file = "Data/2ndSE_GBGE_Net2_construction.RData")
+load(file = "Data/WGCNA_course_Net1_construction.RData")
 
 #Define numbers of genes and samples
 nGenes = ncol(data)
@@ -47,33 +47,29 @@ nSamples = nrow(data)
 }
 
 ## ------------------------------------------- STEP I --------------------------------------------------
-##Generate an Eigengene-treatment table, Eigengenes are defined as the first principal component of each module
-#Average the correlation of the eigengenes for each module across all replicates of a treatment
+##Generate an Eigengene-treatment table with the Module-Eigengene (ME) correlation values to each treatment
+#MEs are artificial expression profiles representing the first principal component of each module
 
 #make sure to have the correct row-order of treatments here!
 {
-  cold = colMeans(MEs[1:4,])
-  control = colMeans(MEs[5:8,])
-  drought = colMeans(MEs[9:11,])
-  heat = colMeans(MEs[12:14,])
-  herbivory = colMeans(MEs[15:17,])
+  control = colMeans(MEs[1:4,])
+  cold = colMeans(MEs[5:8,])
+  heat = colMeans(MEs[9:11,])
 }
 
-MEs1 = data.frame(rbind(cold, control, drought, heat, herbivory))
+MEs1 = data.frame(rbind(control, cold, heat))
 
-write.table(MEs1, "Data/2ndSE_GBGE_Net2_eigengene-treatment.txt", sep = "\t", quote = F)
+write.table(MEs1, "Data/WGCNA_course_Net1_eigengene-treatment.txt", sep = "\t", quote = F)
 
 #remove the vectors containing eigengene averages from the environment
-rm(cold, control, drought, heat, herbivory)
+rm(control, cold, heat)
 
 ## ------------------------------------------ STEP II --------------------------------------------------
 ##Generate a matrix with treatments for module-treatment correlation
 #vector containing treatment names as many times as there are samples for each treatment
-treatment <- c(rep("cold", 4),
-               rep("control", 4),
-               rep("drought", 3),
-               rep("heat", 3),
-               rep("herbivory", 3))
+treatment <- c(rep("control", 2),
+               rep("cold", 2),
+               rep("heat", 2))
 
 #dataframe with a column "treatment" containing the treatment names from before
 treatment <- data.frame(treatment = as.factor(treatment))
@@ -92,11 +88,11 @@ moduleTraitCor <- WGCNA::cor(MEs, treat, use = "p")
 #Calculates student asymptotic p-value for correlations
 moduleTraitPvalue <- corPvalueStudent(moduleTraitCor,length(treat))
 #nicer column names
-colnames(moduleTraitCor) <- c("cor_cold", "cor_control", "cor_drought", "cor_heat", "cor_herbivory")
+colnames(moduleTraitCor) <- c("cor_control", "cor_heat", "cor_cold")
 #nicer row names
 rownames(moduleTraitCor) <- rownames(moduleTraitCor) %>% substr(.,3,nchar(rownames(moduleTraitCor)))
 #Do the same for the Pvalue table
-colnames(moduleTraitPvalue) <- c("pval_cold", "pval_control", "pval_drought", "pval_heat", "pval_herbivory")
+colnames(moduleTraitPvalue) <- c("pval_control", "pval_cold" "pval_heat")
 rownames(moduleTraitPvalue) <- rownames(moduleTraitPvalue) %>% substr(.,3,nchar(rownames(moduleTraitPvalue)))
 #Combine correlation and pvalue tables
 module_treatment_cor <- cbind(moduleTraitCor, moduleTraitPvalue)
@@ -109,7 +105,7 @@ write.table(module_treatment_cor, "Data/Module-treatment_cor.txt", sep = "\t", q
 #create a treatment dataframe from the modelmatrix
 trait=as.data.frame(treat)
 #nicer column names, ordered as in "treat"
-names(trait) = c("cold", "control", "drought", "heat", "herbivory")
+names(trait) = c("control", "cold", "heat")
 
 ##Write "gene to treatment correlation"- and "correlation pvalue"-files
 dir.create("gene-treatment_cor")
@@ -187,12 +183,12 @@ for (i in 1:length(clr)) {
 hubs = as.data.frame(hubs)
 colnames(hubs) = clr
 
-write.table(hubs,"Data/2ndSE_GBGE_Net2_Top_10_ModuleMembership_genes.txt", sep = "\t", quote = F)
+write.table(hubs,"Data/WGCNA_course_Net1_Top_10_ModuleMembership_genes.txt", sep = "\t", quote = F)
 
 ## ------------------------------------------- STEP V ------------------------------------------------
 #Extract the top1 HUB-gene for each module, based on the connectivity score of a gene
 
 hub = chooseTopHubInEachModule(data, moduleColors, omitColors = "grey",
-                               power = 10, type = "unsigned")
+                               power = 1, type = "unsigned")
 
 write.table(hub,"Data/Module_top1_HUB-genes.txt", quote = F, col.names = F)
