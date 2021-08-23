@@ -17,12 +17,12 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA")
+setwd("~/WGCNA")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 12
+nCPU = 8
 enableWGCNAThreads(nThreads = nCPU)
 
 ### ------------------------------------------ STAGE III -----------------------------------------------
@@ -35,14 +35,13 @@ enableWGCNAThreads(nThreads = nCPU)
 load(file = "Data/dataInput.RData")
 
 ##calculate adjacency matrix
-#Based on the soft-thresholding choice in STAGE I, we chose a power of 9
-#power = 10 fits scale-free topology by 0.904
+#Based on the soft-thresholding choice in STAGE I, we chose the same power again.
 #CAREFUL - DEFAULT of adjacency() is "unsigned"
 
-adjacency = adjacency(data, type = "unsigned", power = 10)
-save(adjacency, file = "Data/2ndSE_GBGE_Net2_adjacency_matrix.RData")
-#load(file = "Data/AthNet1_adjacency_matrix.RData")
-write.table(adjacency, "Data/2ndSE_GBGE_Net2_adjacency_matrix.txt", sep = "\t", quote = F)
+adjacency = adjacency(data, type = "unsigned", power = 1)
+save(adjacency, file = "Data/WGCNA_course_Net1_adjacency_matrix.RData")
+#load(file = "Data/WGCNA_course_Net1_matrix.RData")
+write.table(adjacency, "Data/WGCNA_course_Net1_adjacency_matrix.txt", sep = "\t", quote = F)
 
 
 ## ---------------------------------------------- STEP II ----------------------------------------------
@@ -50,11 +49,11 @@ write.table(adjacency, "Data/2ndSE_GBGE_Net2_adjacency_matrix.txt", sep = "\t", 
 #within module and outside module connections are calculated. Requires adjacency matrix. 
 
 #load adjacency matrix and network
-#load(file = "Data/2ndSE_GBGE_Net1_adjacency_matrix.RData")
-load(file = "Data/2ndSE_GBGE_Net2_construction.RData")
+#load(file = "Data/WGCNA_course_Net1_adjacency_matrix.RData")
+load(file = "Data/WGCNA_course_Net1_construction.RData")
 
 #The function intramodularConnectivity computes the whole network connectivitykTotal,
-#the within module connectivitykWithin, kOut=kTotal-kWithin, andkDiff=kIn-kOut=2*kIN-kTotal
+#the within module connectivity kWithin, kOut=kTotal-kWithin, andkDiff=kIn-kOut=2*kIN-kTotal
 connectivity <- intramodularConnectivity(adjacency, net$colors)
 
-write.table(connectivity, "Data/2ndSE_GBGE_Net2_gene_connectivity.txt", sep = "\t", quote = F)
+write.table(connectivity, "Data/WGCNA_course_Net1_gene_connectivity.txt", sep = "\t", quote = F)
