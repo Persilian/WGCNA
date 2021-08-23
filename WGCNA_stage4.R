@@ -22,40 +22,29 @@ setwd("~/WGCNA")
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 8
-enableWGCNAThreads(nThreads = nCPU)
-
-
 ### ----------------------------------------- STAGE IV -------------------------------------------------
 ### ---------------------------- Module- and gene-treatment correlations -------------------------------
 
 #load expression data
 load(file = "Data/dataInput.RData")
 
-# Load network data
+#Load network data
 load(file = "Data/WGCNA_course_Net1_construction.RData")
 
-#Define numbers of genes and samples
-nGenes = ncol(data)
-nSamples = nrow(data)
-
-#Load eigengenes
-{
-  MEs <- moduleEigengenes(data, moduleColors)$eigengenes #calculates module eigengenes
-  MEs0 <- moduleEigengenes(data, moduleColors)$eigengenes
-  MEs <- orderMEs(MEs0)
-}
+#Load Module-Eigengenes (MEs) and order them according to similarities
+MEs <- orderMEs(moduleEigengenes(data, moduleColors)$eigengenes)
 
 ## ------------------------------------------- STEP I --------------------------------------------------
-##Generate an Eigengene-treatment table with the Module-Eigengene (ME) correlation values to each treatment
+##Generate an Eigengene-treatment table with the ME correlation values to each treatment
 #MEs are artificial expression profiles representing the first principal component of each module
 
-#make sure to have the correct row-order of treatments here!
-{
-  control = colMeans(MEs[1:4,])
-  cold = colMeans(MEs[5:8,])
-  heat = colMeans(MEs[9:11,])
-}
+#From WGCNA_stage1.R "data" contains your samples (e.g. RNAseq libraries) as rows and genes as columns
+#The order of your samples is preserved like in your initial input expression matrix
+#In case you're unsure, check with rownames(data) manually
+
+control = colMeans(MEs[1:2,])
+cold = colMeans(MEs[3:4,])
+heat = colMeans(MEs[5:6,])
 
 MEs1 = data.frame(rbind(control, cold, heat))
 
@@ -81,7 +70,7 @@ rownames(treatment) <- rownames(data)
 treat <- model.matrix(~., data = treatment,
                       contrasts.arg = lapply(treatment, contrasts, contrasts = F))
 
-#remove the first column of this modelmatrix, which is the apparently useless "intercept"-column
+#remove the first column of this modelmatrix, which is the "intercept"-column
 treat <- treat[,-1]
 #MEs matrix is correlated with treat modelmatrix
 moduleTraitCor <- WGCNA::cor(MEs, treat, use = "p")
@@ -92,7 +81,7 @@ colnames(moduleTraitCor) <- c("cor_control", "cor_heat", "cor_cold")
 #nicer row names
 rownames(moduleTraitCor) <- rownames(moduleTraitCor) %>% substr(.,3,nchar(rownames(moduleTraitCor)))
 #Do the same for the Pvalue table
-colnames(moduleTraitPvalue) <- c("pval_control", "pval_cold" "pval_heat")
+colnames(moduleTraitPvalue) <- c("pval_control", "pval_cold", "pval_heat")
 rownames(moduleTraitPvalue) <- rownames(moduleTraitPvalue) %>% substr(.,3,nchar(rownames(moduleTraitPvalue)))
 #Combine correlation and pvalue tables
 module_treatment_cor <- cbind(moduleTraitCor, moduleTraitPvalue)
@@ -108,65 +97,64 @@ trait=as.data.frame(treat)
 names(trait) = c("control", "cold", "heat")
 
 ##Write "gene to treatment correlation"- and "correlation pvalue"-files
-dir.create("gene-treatment_cor")
+dir.create("./Data/gene-treatment_cor")
 
 col_names <- colnames(trait)
 
 for (i in col_names) {
-
+  
   #create a dataframe containing only one treatment column of choice
   selection = as.data.frame(trait[i])
-
+  
   #nicer name for the chosen column
   names(selection) = i
-
+  
   #correlate transcripts with the selected treatment
   geneTraitSignificance = as.data.frame(cor(data, selection, use = "p"))
   #get p-values for these correlations
-  GSPvalue = as.data.frame(corPvalueStudent(as.matrix(geneTraitSignificance), nSamples))
-
+  GSPvalue = as.data.frame(corPvalueStudent(as.matrix(geneTraitSignificance), nrow(data)))
+  
   #nicer column titles
   names(geneTraitSignificance) = paste("cor.", names(selection), sep="")
   names(GSPvalue) = paste("pval.", names(selection), sep="")
-
+  
   #save the produced tables for later merging in excel
-  write.table(geneTraitSignificance, file = paste("gene-treatment_cor/", i, "_geneTraitSignificance.txt", sep = ""), sep = "\t", quote = F)
-  write.table(GSPvalue, file = paste("gene-treatment_cor/", i, "_GSPvalue.txt", sep = ""), sep = "\t", quote = F)
-
+  write.table(geneTraitSignificance, file = paste("./Data/gene-treatment_cor/", i, "_geneTraitSignificance.txt", sep = ""), sep = "\t", quote = F)
+  write.table(GSPvalue, file = paste("./Data/gene-treatment_cor/", i, "_GSPvalue.txt", sep = ""), sep = "\t", quote = F)
+  
 }
 
 #merge the individual files for convenience by
 #listing all files
-mult_files = list.files("gene-treatment_cor/", pattern="*[Significance,GSPvalue].txt")
-mult_files <- paste("gene-treatment_cor/", mult_files[1:length(mult_files)], sep = "")
+mult_files = list.files("./Data/gene-treatment_cor/", pattern="*[Significance,GSPvalue].txt")
+mult_files <- paste("./Data/gene-treatment_cor/", mult_files[1:length(mult_files)], sep = "")
 #reading all files
 myfilelist <- lapply(mult_files, read.table)
 #assigning variable names to the files
-names(myfilelist) <- list.files("gene-treatment_cor/", pattern="*[Significance,GSPvalue].txt", full.names=FALSE)
+names(myfilelist) <- list.files("./Data/gene-treatment_cor/", pattern="*[Significance,GSPvalue].txt", full.names=FALSE)
 #rbind all the files together
 gene_treatment_cor <- as.data.frame(lapply(myfilelist, rbind))
 #save the file
-write.table(gene_treatment_cor, file = "Data/Combined_gene-treatment_cor.txt", sep = "\t", quote = F)
+write.table(gene_treatment_cor, file = "./Data/Combined_gene-treatment_cor.txt", sep = "\t", quote = F)
 #after combining the files, remove the directory with the individual files
-unlink("gene-treatment_cor", recursive = TRUE)
-
+unlink("./Data/gene-treatment_cor", recursive = TRUE)
 
 ## ------------------------------------------- STEP IV ------------------------------------------------
 #Extract top10 correlated genes for each module, based on the correlation score of a gene to a module-eigengene
 
 #vector of nice module names
 modNames = substring(names(MEs), 3)
-#membership of a gene to a module, expressed in correlation
-geneModuleMembership = as.data.frame(cor(data, MEs0, use = "p"))
+#membership of a gene to a module, expressed in pearson-correlation
+geneModuleMembership = as.data.frame(cor(data, MEs, use = "p"))
 #pvalues of these correlations
-MMPvalue = as.data.frame(corPvalueStudent(as.matrix(geneModuleMembership), nSamples))
+MMPvalue = as.data.frame(corPvalueStudent(as.matrix(geneModuleMembership), nrow(data)))
 #changing column titles from ME to MM
 names(geneModuleMembership) = paste("MM", modNames, sep="")
 names(MMPvalue) = paste("p.MM", modNames, sep="")
 #combine correlation and pvalue tables
 geneModuleMembership <- cbind(geneModuleMembership, MMPvalue)
 #save the produced tables
-write.table(geneModuleMembership, "Data/geneModuleMemebership.txt", sep = "\t", quote = F)
+write.table(geneModuleMembership, "./Data/geneModuleMemebership.txt", sep = "\t", quote = F)
 
 #Extract HUB-genes
 clr = sort(unique(moduleColors))
@@ -183,7 +171,7 @@ for (i in 1:length(clr)) {
 hubs = as.data.frame(hubs)
 colnames(hubs) = clr
 
-write.table(hubs,"Data/WGCNA_course_Net1_Top_10_ModuleMembership_genes.txt", sep = "\t", quote = F)
+write.table(hubs, "./Data/WGCNA_course_Net1_Top_10_ModuleMembership_genes.txt", sep = "\t", quote = F)
 
 ## ------------------------------------------- STEP V ------------------------------------------------
 #Extract the top1 HUB-gene for each module, based on the connectivity score of a gene
@@ -191,4 +179,4 @@ write.table(hubs,"Data/WGCNA_course_Net1_Top_10_ModuleMembership_genes.txt", sep
 hub = chooseTopHubInEachModule(data, moduleColors, omitColors = "grey",
                                power = 1, type = "unsigned")
 
-write.table(hub,"Data/Module_top1_HUB-genes.txt", quote = F, col.names = F)
+write.table(hub,"./Data/Module_top1_HUB-genes.txt", quote = F, col.names = F)
