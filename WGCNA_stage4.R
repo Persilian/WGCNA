@@ -50,9 +50,6 @@ MEs1 = data.frame(rbind(control, cold, heat))
 
 write.table(MEs1, "Data/WGCNA_course_Net1_eigengene-treatment.txt", sep = "\t", quote = F)
 
-#remove the vectors containing eigengene averages from the environment
-rm(control, cold, heat)
-
 ## ------------------------------------------ STEP II --------------------------------------------------
 ##Generate a matrix with treatments for module-treatment correlation
 #vector containing treatment names as many times as there are samples for each treatment
