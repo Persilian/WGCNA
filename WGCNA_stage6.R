@@ -17,12 +17,12 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA/")
+setwd("~/WGCNA/")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 12
+nCPU = 8
 enableWGCNAThreads(nThreads = nCPU)
 
 ### ---------------------------------------- STAGE VI -------------------------------------------------
@@ -30,7 +30,7 @@ enableWGCNAThreads(nThreads = nCPU)
 
 #load data
 load(file = "Data/dataInput.RData")
-load(file = "Data/2ndSE_GBGE_Net2_construction.RData")
+load(file = "Data/WGCNA_course_Net1_construction.RData")
 
 ###parameters
 #adjacency-treshold, genes that are connected with with edge-weights lower than this threshold will be excluded from the Node- and Edge-lists
@@ -39,7 +39,7 @@ adj_threshold = 0.05
 ## ------------------------------------------- STEP I -------------------------------------------------
 #Generate Edge- and Node-files for each module, which can be used as Cytoscape input
 
-load(file = "Data/2ndSE_GBGE_Net2_adjacency_matrix.RData") #TAKES A LOT OF RAM
+load(file = "Data/WGCNA_course_Net1_adjacency_matrix.RData") #TAKES A LOT OF RAM
 
 dir.create("Data/cytoscape")
 
