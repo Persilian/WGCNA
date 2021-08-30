@@ -17,7 +17,7 @@ library(gplots)
 library(reshape2)
 library(patchwork)
 
-setwd("~/WGCNA_course/WGCNA/")
+setwd("~/WGCNA/")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
