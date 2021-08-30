@@ -20,12 +20,12 @@ library(patchwork)
 library(circlize)
 
 
-setwd("/media/Data2/marc2/Biscutella_genome-based_RNAseq/WGCNA")
+setwd("~/WGCNA")
 
 # The following setting is important, do not omit.
 options(stringsAsFactors = FALSE)
 
-nCPU = 12
+nCPU = 8
 enableWGCNAThreads(nThreads = nCPU)
 
 ### ----------------------------------------- STAGE V -------------------------------------------------
