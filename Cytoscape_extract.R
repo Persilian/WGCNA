@@ -35,7 +35,8 @@ genes <- read.table("./Data/gene_list.txt", header = F)
 #Takes a lot of RAM!
 load(file = "Data/WGCNA_course_Net1_adjacency_matrix.RData")
 
-#adjacency-treshold, genes that are connected with with edge-weights lower than this threshold will be excluded from the Node- and Edge-lists
+#adjacency-treshold, genes that are connected with with edge-weights lower than this threshold will be excluded from the Edge- and Node-files
+#Note that a minimum threshold of 0.05 should always be applied in order to reduce the size of the Edge- and Node-files
 adj_threshold = 0.05
 
 #Extract genes of your choice from the adjacency matrix
