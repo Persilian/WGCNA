@@ -3,7 +3,6 @@
 
 #set your working directory
 setwd("C:/Users/.../Desktop/R/WGCNA_course_October2021/")
-getwd()
 
 #load libraries, tidyverse includes many awesome libraries like ggplot2, dplyr, and purrr
 library(tidyverse)
