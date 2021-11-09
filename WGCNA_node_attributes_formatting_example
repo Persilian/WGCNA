@@ -1,0 +1,107 @@
+##WGCNA course October 2021 node attribute formatting for ATH in cold and heat6h
+#Node attributes for all 44'799 genes (this number may change based on your individual genome assemblies)
+
+#set your working directory
+setwd("C:/Users/.../Desktop/R/WGCNA_course_October2021/")
+getwd()
+
+#load libraries, tidyverse includes many awesome libraries like ggplot2, dplyr, and purrr
+library(tidyverse)
+
+#list files in a directory
+list.files("./Data")
+
+
+### ============= load data ================== ###
+#DEG data from A. thaliana RNAseq (Klepikova 2016), done with DESeq2 on control, cold and heat6h libraries (2 libraries each, very little data - be conservative)
+cold_up <- read.table("./Data/WGCNA_course.isoform.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.cold-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+heat_up <- read.table("./Data/WGCNA_course.isoform.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.heat-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+
+cold_down <- read.table("./Data/WGCNA_course.isoform.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+heat_down <- read.table("./Data/WGCNA_course.isoform.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+
+#Gene connectivity from WGCNA_course_unsigned_Net1
+connectivity <- read.table("./Data/WGCNA_course_Net1_gene_connectivity.txt", header = T, sep = "\t", na.strings = c("", "NA"))
+
+### ===== ###
+
+### ========================== data formatting ================================ ###
+#add a column name "transcript" to the datasets
+{
+  cold_up <- tibble::rownames_to_column(cold_up, "transcript") 
+  heat_up <- tibble::rownames_to_column(heat_up, "transcript") 
+  
+  cold_down <- tibble::rownames_to_column(cold_down, "transcript") 
+  heat_down <- tibble::rownames_to_column(heat_down, "transcript") 
+  
+  connectivity <- tibble::rownames_to_column(connectivity, "transcript")
+}
+
+### === DEG node attributes === ###
+#add regulation columns
+{
+  cold_up$cold_up <- "yes"
+  heat_up$heat_up <- "yes"
+  cold_down$cold_down <- "yes"
+  heat_down$heat_down <- "yes"
+  
+  cold_up$cold_down <- "no"
+  heat_up$heat_down <- "no"
+  cold_down$cold_up <- "no"
+  heat_down$heat_up <- "no"
+}
+
+#add shared stress columns
+{
+  #cold-heat up-regulated common
+  stress_common <- intersect(cold_up[,1], heat_up[,1])
+  all_up_common <- as.data.frame(stress_common)
+  all_up_common$all_up_common <- "yes"
+  colnames(all_up_common) <- c("transcript", "all_up_common")  
+  #cold-heat down-regulated common
+  stress_common <- intersect(cold_down[,1], heat_down[,1])
+  all_down_common <- as.data.frame(stress_common)
+  all_down_common$all_down_common <- "yes"
+  colnames(all_down_common) <- c("transcript", "all_down_common")
+}
+
+#rename log2FoldChabnge column for treatment specificity
+{
+  colnames(cold_up)[7] <- "cold_log2FC"
+  colnames(cold_down)[7] <- "cold_log2FC"
+  cold_DEG <- rbind(cold_up, cold_down)
+  
+  colnames(heat_up)[7] <- "heat_log2FC"
+  colnames(heat_down)[7] <- "heat_log2FC"
+  heat_DEG <- rbind(heat_up, heat_down)
+}
+
+### ==================== form the node attribute data.frame ======================== ###
+{
+  node_attributes <- merge(connectivity, cold_DEG[,c(1,7,18,19)], by = "transcript", all.x = TRUE)
+  node_attributes <- merge(node_attributes, heat_DEG[,c(1,7,18,19)], by = "transcript", all.x = TRUE)
+  node_attributes <- merge(node_attributes, all_up_common, by = "transcript", all.x = TRUE)
+  node_attributes <- merge(node_attributes, all_down_common, by = "transcript", all.x = TRUE)
+  
+  #exclude log2FC columns for the next step
+  node_attributes1 <- node_attributes[,c(1:5,7,8,10:13)]
+  
+  #replace NAs with "no", currently only the DEG columns are present and all entries with "NA" are not differentially expressed
+  node_attributes1[is.na(node_attributes1)] <- "no"
+  
+  #merge the log2FC columns back, now all entries with "NA" mean they have a not significant log2FC, thus are not differentially expressed
+  node_attributes <- merge(node_attributes1, node_attributes[,c(1,6,9)], by ="transcript", all.x = TRUE)
+  
+  #replace all the "NA" log2FC entries with 0, to distinguish this log2FC from the continuous log2FC of the DEGs
+  node_attributes[is.na(node_attributes)] <- 0
+}
+
+write.table(node_attributes, file = "./Data/WGCNA_course2021_unsigned_Net1_ALL_node_attributes.txt", row.names = F, col.names = T, quote = F, sep = "\t")
+
+
+
+
+
+
+
+
