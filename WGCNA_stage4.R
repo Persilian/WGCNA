@@ -74,7 +74,7 @@ moduleTraitCor <- WGCNA::cor(MEs, treat, use = "p")
 #Calculates student asymptotic p-value for correlations
 moduleTraitPvalue <- corPvalueStudent(moduleTraitCor,length(treat))
 #nicer column names
-colnames(moduleTraitCor) <- c("cor_control", "cor_heat", "cor_cold")
+colnames(moduleTraitCor) <- c("cor_control", "cor_cold", "cor_heat")
 #nicer row names
 rownames(moduleTraitCor) <- rownames(moduleTraitCor) %>% substr(.,3,nchar(rownames(moduleTraitCor)))
 #Do the same for the Pvalue table
