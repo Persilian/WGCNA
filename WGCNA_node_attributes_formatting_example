@@ -13,11 +13,11 @@ list.files("./Data")
 
 ### ============= load data ================== ###
 #DEG data from A. thaliana RNAseq (Klepikova 2016), done with DESeq2 on control, cold and heat6h libraries (2 libraries each, very little data - be conservative)
-cold_up <- read.table("./Data/WGCNA_course.isoform.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.cold-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
-heat_up <- read.table("./Data/WGCNA_course.isoform.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.heat-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+cold_up <- read.table("./Data/WGCNA_course.gene.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.cold-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+heat_up <- read.table("./Data/WGCNA_course.gene.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.heat-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
 
-cold_down <- read.table("./Data/WGCNA_course.isoform.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
-heat_down <- read.table("./Data/WGCNA_course.isoform.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+cold_down <- read.table("./Data/WGCNA_course.gene.counts.matrix.cold_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
+heat_down <- read.table("./Data/WGCNA_course.gene.counts.matrix.heat_vs_control.DESeq2.DE_results.P1e-3_C2.control-UP.subset", header = T, sep = "\t", na.strings = c("", "NA"))
 
 #Gene connectivity from WGCNA_course_unsigned_Net1
 connectivity <- read.table("./Data/WGCNA_course_Net1_gene_connectivity.txt", header = T, sep = "\t", na.strings = c("", "NA"))
